@@ -1,0 +1,1757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indian Cattle & Buffalo Breed Recognition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            box-sizing: border-box;
+        }
+        
+        .aurora-bg {
+            background: linear-gradient(135deg, 
+                #1e3a8a 0%,   /* Deep blue */
+                #3b82f6 15%,  /* Blue */
+                #8b5cf6 30%,  /* Purple */
+                #ec4899 45%,  /* Pink */
+                #f59e0b 60%,  /* Amber */
+                #10b981 75%,  /* Emerald */
+                #06b6d4 90%,  /* Cyan */
+                #1e3a8a 100%  /* Back to deep blue */
+            );
+            background-size: 400% 400%;
+            animation: aurora 20s ease infinite;
+        }
+        
+        @keyframes aurora {
+            0% { background-position: 0% 50%; }
+            25% { background-position: 100% 50%; }
+            50% { background-position: 100% 100%; }
+            75% { background-position: 0% 100%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .glass {
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.15) 0%,
+                rgba(255, 255, 255, 0.05) 100%
+            );
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .glass-dark {
+            background: linear-gradient(135deg, 
+                rgba(0, 0, 0, 0.4) 0%,
+                rgba(0, 0, 0, 0.2) 100%
+            );
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #60a5fa, #a78bfa, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border: 1px solid rgba(59, 130, 246, 0.5);
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #2563eb, #1e40af);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: 1px solid rgba(16, 185, 129, 0.5);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+        
+        .btn-success:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .btn-purple {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            border: 1px solid rgba(139, 92, 246, 0.5);
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+        }
+        
+        .btn-purple:hover {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .btn-amber {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border: 1px solid rgba(245, 158, 11, 0.5);
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+        
+        .btn-amber:hover {
+            background: linear-gradient(135deg, #d97706, #b45309);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .card-cattle {
+            background: linear-gradient(135deg, 
+                rgba(59, 130, 246, 0.2) 0%,
+                rgba(16, 185, 129, 0.1) 100%
+            );
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        
+        .card-buffalo {
+            background: linear-gradient(135deg, 
+                rgba(139, 92, 246, 0.2) 0%,
+                rgba(236, 72, 153, 0.1) 100%
+            );
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+        
+        .tab-indicator {
+            transition: all 0.3s ease;
+        }
+        
+        .breed-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .breed-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .upload-zone {
+            transition: all 0.3s ease;
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+        }
+        
+        .upload-zone.dragover {
+            border-color: #60a5fa;
+            background: rgba(96, 165, 250, 0.1);
+        }
+        
+        .confidence-high { color: #10b981; }
+        .confidence-medium { color: #f59e0b; }
+        .confidence-low { color: #ef4444; }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .reference-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .reference-card {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body class="aurora-bg min-h-screen text-white">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4 gradient-text">🐄 Indian Cattle & Buffalo Recognition</h1>
+            <p class="text-lg opacity-90 text-blue-100">Advanced breed identification with visual dataset references</p>
+        </div>
+
+        <!-- Main App Container -->
+        <div class="glass rounded-2xl p-6 max-w-6xl mx-auto">
+            <!-- Tab Navigation -->
+            <div class="flex flex-wrap justify-center mb-8 relative">
+                <div class="flex bg-black bg-opacity-30 rounded-full p-1">
+                    <button class="tab-btn px-6 py-3 rounded-full font-medium transition-all duration-300 active" data-tab="upload">
+                        📤 Upload
+                    </button>
+                    <button class="tab-btn px-6 py-3 rounded-full font-medium transition-all duration-300" data-tab="result">
+                        🔍 Result
+                    </button>
+                    <button class="tab-btn px-6 py-3 rounded-full font-medium transition-all duration-300" data-tab="details">
+                        📋 Details
+                    </button>
+                    <button class="tab-btn px-6 py-3 rounded-full font-medium transition-all duration-300" data-tab="breeds">
+                        🐮 All Breeds
+                    </button>
+                    <button class="tab-btn px-6 py-3 rounded-full font-medium transition-all duration-300" data-tab="dataset">
+                        📊 Visual Dataset
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab Content -->
+            <div id="upload-tab" class="tab-content">
+                <div class="text-center">
+                    <div class="upload-zone rounded-2xl p-12 mb-6 cursor-pointer" id="uploadZone">
+                        <div class="mb-4">
+                            <svg class="w-16 h-16 mx-auto mb-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">Upload Cattle/Buffalo Image</h3>
+                        <p class="opacity-70 mb-4">Drag & drop, click to browse, or use camera</p>
+                        <input type="file" id="fileInput" accept="image/*" class="hidden">
+                        <div class="flex flex-wrap justify-center gap-4">
+                            <button id="browseBtn" class="btn-primary px-6 py-3 rounded-lg font-medium transition-all duration-300">
+                                📁 Browse Files
+                            </button>
+                            <button id="cameraBtn" class="btn-success px-6 py-3 rounded-lg font-medium transition-all duration-300">
+                                📷 Use Camera
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="imagePreview" class="hidden">
+                        <img id="previewImg" class="max-w-xs max-h-48 mx-auto rounded-lg shadow-lg mb-4 object-cover">
+                        <button id="analyzeBtn" class="btn-purple px-8 py-3 rounded-lg font-medium transition-all duration-300">
+                            🔍 Analyze Breed
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="result-tab" class="tab-content hidden">
+                <div id="analysisResult" class="text-center">
+                    <p class="text-lg opacity-70">Upload an image to see breed analysis results</p>
+                </div>
+            </div>
+
+            <div id="details-tab" class="tab-content hidden">
+                <div id="breedDetails" class="text-center">
+                    <p class="text-lg opacity-70">Select a breed from results to view detailed information</p>
+                </div>
+            </div>
+
+            <div id="breeds-tab" class="tab-content hidden">
+                <div class="mb-6">
+                    <div class="flex flex-col md:flex-row gap-4 mb-4">
+                        <input type="text" id="searchBreeds" placeholder="Search breeds..." 
+                               class="flex-1 px-4 py-3 rounded-lg glass-dark border border-blue-400 border-opacity-50 text-white placeholder-blue-200 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-30">
+                        <select id="filterType" class="px-4 py-3 rounded-lg glass-dark border border-white border-opacity-20 text-white">
+                            <option value="">All Types</option>
+                            <option value="cattle">Cattle</option>
+                            <option value="buffalo">Buffalo</option>
+                        </select>
+                        <button id="exportBtn" class="btn-amber px-6 py-3 rounded-lg font-medium transition-all duration-300">
+                            📥 Export Data
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="breedsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Breeds will be populated here -->
+                </div>
+            </div>
+
+            <div id="dataset-tab" class="tab-content hidden">
+                <div class="text-center mb-6">
+                    <h2 class="text-3xl font-bold mb-4 gradient-text">📊 Visual Breed Dataset</h2>
+                    <p class="text-lg text-blue-100">Reference images and visual characteristics for accurate breed identification</p>
+                </div>
+                <div id="datasetGrid" class="space-y-8">
+                    <!-- Dataset will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Comprehensive Indian cattle and buffalo breeds database with visual references
+        const breedsDatabase = {
+            // Cattle Breeds
+            'Gir': {
+                type: 'cattle',
+                origin: 'Gujarat',
+                milkYield: '1200-1800 kg/lactation',
+                characteristics: 'Distinctive curved horns, white/red coat with black patches, docile temperament',
+                careTips: 'Heat tolerant, requires good grazing, regular deworming',
+                marketDemand: 'High - Premium dairy breed',
+                features: ['curved_horns', 'white_red_coat', 'black_patches'],
+                visualCharacteristics: {
+                    bodyColor: ['white', 'light_red', 'reddish_brown'],
+                    patterns: ['spotted', 'patches'],
+                    hornShape: 'curved_backward',
+                    bodySize: 'medium',
+                    facialFeatures: 'broad_forehead'
+                },
+                referenceImages: [
+                    {
+                        svg: `<svg viewBox="0 0 300 200" class="w-full h-32">
+                            <defs>
+                                <pattern id="girPattern" patternUnits="userSpaceOnUse" width="20" height="20">
+                                    <rect width="20" height="20" fill="#f8f8f8"/>
+                                    <circle cx="10" cy="10" r="3" fill="#cd853f"/>
+                                </pattern>
+                            </defs>
+                            <ellipse cx="150" cy="120" rx="80" ry="40" fill="url(#girPattern)"/>
+                            <ellipse cx="120" cy="80" rx="35" ry="25" fill="#f8f8f8"/>
+                            <path d="M105 65 Q100 55 95 60 Q90 65 95 70" stroke="#8b4513" stroke-width="3" fill="none"/>
+                            <path d="M135 65 Q140 55 145 60 Q150 65 145 70" stroke="#8b4513" stroke-width="3" fill="none"/>
+                            <circle cx="110" cy="75" r="2" fill="#333"/>
+                            <circle cx="130" cy="75" r="2" fill="#333"/>
+                            <text x="150" y="180" text-anchor="middle" class="text-xs fill-white">Gir Cattle - Gujarat</text>
+                        </svg>`,
+                        description: 'White coat with reddish-brown patches, distinctive curved horns'
+                    }
+                ]
+            },
+            'Sahiwal': {
+                type: 'cattle',
+                origin: 'Punjab/Pakistan',
+                milkYield: '2000-3000 kg/lactation',
+                characteristics: 'Reddish brown coat, loose skin, well-developed udder',
+                careTips: 'Good heat tolerance, needs quality feed for high production',
+                marketDemand: 'Very High - Top dairy performer',
+                features: ['reddish_brown', 'loose_skin', 'large_udder'],
+                visualCharacteristics: {
+                    bodyColor: ['reddish_brown', 'dark_red'],
+                    patterns: ['solid'],
+                    hornShape: 'short_upward',
+                    bodySize: 'large',
+                    facialFeatures: 'loose_skin'
+                },
+                referenceImages: [
+                    {
+                        svg: `<svg viewBox="0 0 300 200" class="w-full h-32">
+                            <ellipse cx="150" cy="120" rx="85" ry="45" fill="#8B4513"/>
+                            <ellipse cx="120" cy="80" rx="40" ry="28" fill="#A0522D"/>
+                            <ellipse cx="150" cy="150" rx="25" ry="15" fill="#CD853F"/>
+                            <path d="M105 70 L100 65 L105 60" stroke="#654321" stroke-width="2" fill="none"/>
+                            <path d="M135 70 L140 65 L135 60" stroke="#654321" stroke-width="2" fill="none"/>
+                            <circle cx="110" cy="75" r="2" fill="#333"/>
+                            <circle cx="130" cy="75" r="2" fill="#333"/>
+                            <text x="150" y="180" text-anchor="middle" class="text-xs fill-white">Sahiwal - Punjab</text>
+                        </svg>`,
+                        description: 'Reddish-brown coat, loose skin, prominent udder'
+                    }
+                ]
+            },
+            'Red Sindhi': {
+                type: 'cattle',
+                origin: 'Sindh (now Pakistan)',
+                milkYield: '1500-2500 kg/lactation',
+                characteristics: 'Deep red coat, compact body, good milk quality',
+                careTips: 'Adaptable to various climates, regular health checkups',
+                marketDemand: 'High - Good dual purpose breed',
+                features: ['deep_red_coat', 'compact_body'],
+                visualCharacteristics: {
+                    bodyColor: ['deep_red', 'dark_red'],
+                    patterns: ['solid'],
+                    hornShape: 'medium_curved',
+                    bodySize: 'medium',
+                    facialFeatures: 'compact_head'
+                },
+                referenceImages: [
+                    {
+                        svg: `<svg viewBox="0 0 300 200" class="w-full h-32">
+                            <ellipse cx="150" cy="120" rx="75" ry="40" fill="#8B0000"/>
+                            <ellipse cx="120" cy="85" rx="32" ry="22" fill="#A0522D"/>
+                            <path d="M105 70 Q100 60 95 65" stroke="#654321" stroke-width="2" fill="none"/>
+                            <path d="M135 70 Q140 60 145 65" stroke="#654321" stroke-width="2" fill="none"/>
+                            <circle cx="110" cy="78" r="2" fill="#333"/>
+                            <circle cx="130" cy="78" r="2" fill="#333"/>
+                            <text x="150" y="180" text-anchor="middle" class="text-xs fill-white">Red Sindhi - Sindh</text>
+                        </svg>`,
+                        description: 'Deep red coat, compact body structure'
+                    }
+                ]
+            },
+            'Tharparkar': {
+                type: 'cattle',
+                origin: 'Rajasthan',
+                milkYield: '1800-2500 kg/lactation',
+                characteristics: 'White/grey coat, medium size, drought resistant',
+                careTips: 'Excellent for arid regions, minimal water requirements',
+                marketDemand: 'Medium - Good for dry areas',
+                features: ['white_grey_coat', 'medium_size', 'drought_resistant'],
+                visualCharacteristics: {
+                    bodyColor: ['white', 'light_grey'],
+                    patterns: ['solid'],
+                    hornShape: 'medium_straight',
+                    bodySize: 'medium',
+                    facialFeatures: 'narrow_head'
+                },
+                referenceImages: [
+                    {
+                        svg: `<svg viewBox="0 0 300 200" class="w-full h-32">
+                            <ellipse cx="150" cy="120" rx="75" ry="38" fill="#f5f5f5"/>
+                            <ellipse cx="120" cy="85" rx="30" ry="20" fill="#e8e8e8"/>
+                            <path d="M105 70 L100 60" stroke="#666" stroke-width="2" fill="none"/>
+                            <path d="M135 70 L140 60" stroke="#666" stroke-width="2" fill="none"/>
+                            <circle cx="110" cy="78" r="2" fill="#333"/>
+                            <circle cx="130" cy="78" r="2" fill="#333"/>
+                            <text x="150" y="180" text-anchor="middle" class="text-xs fill-white">Tharparkar - Rajasthan</text>
+                        </svg>`,
+                        description: 'White/grey coat, drought-resistant features'
+                    }
+                ]
+            },
+            'Hariana': {
+                type: 'cattle',
+                origin: 'Haryana',
+                milkYield: '1000-1500 kg/lactation',
+                characteristics: 'White/grey coat, strong build, good draught animal',
+                careTips: 'Dual purpose breed, good for both milk and work',
+                marketDemand: 'Medium - Traditional farming areas',
+                features: ['white_grey', 'strong_build', 'dual_purpose'],
+                visualCharacteristics: {
+                    bodyColor: ['white', 'grey'],
+                    patterns: ['solid'],
+                    hornShape: 'short_straight',
+                    bodySize: 'large',
+                    facialFeatures: 'strong_jaw'
+                },
+                referenceImages: [
+                    {
+                        svg: `<svg viewBox="0 0 300 200" class="w-full h-32">
+                            <ellipse cx="150" cy="120" rx="85" ry="42" fill="#f0f0f0"/>
+                            <ellipse cx="120" cy="82" rx="35" ry="24" fill="#e0e0e0"/>
+                            <path d="M105 68 L102 58" stroke="#555" stroke-width="3" fill="none"/>
+                            <path d="M135 68 L138 58" stroke="#555" stroke-width="3" fill="none"/>
+                            <circle cx="110" cy="76" r="2" fill="#333"/>
+                            <circle cx="130" cy="76" r="2" fill="#333"/>
+                            <text x="150" y="180" text-anchor="middle" class="text-xs fill-white">Hariana - Haryana</text>
+                        </svg>`,
+                        description: 'White/grey coat, strong muscular build'
+                    }
+                ]
+            },
+            'Kankrej': {
+                type: 'cattle',
+                origin: 'Gujarat/Rajasthan',
+                milkYield: '1200-2000 kg/lactation',
+                characteristics: 'Silver grey coat, lyre-shaped horns, heat tolerant',
+                careTips: 'Good for semi-arid regions, regular grooming needed',
+                marketDemand: 'Medium - Regional preference',
+                features: ['silver_grey', 'lyre_horns', 'heat_tolerant'],
+                visualCharacteristics: {
+                    bodyColor: ['silver_grey', 'light_grey'],
+                    patterns: ['solid'],
+                    hornShape: 'lyre_shaped',
+                    bodySize: 'large',
+                    facialFeatures: 'prominent_forehead'
+                },
+                referenceImages: [
+                    {
+                        svg: `<svg viewBox="0 0 300 200" class="w-full h-32">
+                            <ellipse cx="150" cy="120" rx="80" ry="40" fill="#c0c0c0"/>
+                            <ellipse cx="120" cy="82" rx="33" ry="23" fill="#d3d3d3"/>
+                            <path d="M105 68 Q95 50 85 55" stroke="#444" stroke-width="2" fill="none"/>
+                            <path d="M135 68 Q145 50 155 55" stroke="#444" stroke-width="2" fill="none"/>
+                            <circle cx="110" cy="76" r="2" fill="#333"/>
+                            <circle cx="130" cy="76" r="2" fill="#333"/>
+                            <text x="150" y="180" text-anchor="middle" class="text-xs fill-white">Kankrej - Gujarat/Rajasthan</text>
+                        </svg>`,
+                        description: 'Silver grey coat, distinctive lyre-shaped horns'
+                    }
+                ]
+            },
+            'Ongole': {
+                type: 'cattle',
+                origin: 'Andhra Pradesh',
+                milkYield: '800-1200 kg/lactation',
+                characteristics: 'White coat, large size, prominent hump',
+                careTips: 'Heat resistant, good for extensive grazing',
+                marketDemand: 'Medium - Beef and draught',
+                features: ['white_coat', 'large_size', 'prominent_hump'],
+                visualCharacteristics: {
+                    bodyColor: ['white', 'cream'],
+                    patterns: ['solid'],
+                    hornShape: 'short_thick',
+                    bodySize: 'very_large',
+                    facialFeatures: 'prominent_hump'
+                },
+                referenceImages: [
+                    {
+                        svg: `<svg viewBox="0 0 300 200" class="w-full h-32">
+                            <ellipse cx="150" cy="125" rx="90" ry="45" fill="#ffffff"/>
+                            <ellipse cx="120" cy="85" rx="38" ry="26" fill="#f8f8f8"/>
+                            <ellipse cx="130" cy="70" rx="15" ry="8" fill="#f0f0f0"/>
+                            <path d="M105 72 L102 65" stroke="#666" stroke-width="3" fill="none"/>
+                            <path d="M135 72 L138 65" stroke="#666" stroke-width="3" fill="none"/>
+                            <circle cx="110" cy="78" r="2" fill="#333"/>
+                            <circle cx="130" cy="78" r="2" fill="#333"/>
+                            <text x="150" y="180" text-anchor="middle" class="text-xs fill-white">Ongole - Andhra Pradesh</text>
+                        </svg>`,
+                        description: 'White coat, large size with prominent hump'
+                    }
+                ]
+            },
+            'Deoni': {
+                type: 'cattle',
+                origin: 'Maharashtra/Karnataka',
+                milkYield: '1500-2200 kg/lactation',
+                characteristics: 'Spotted white and black coat, medium size, good milk quality',
+                careTips: 'Dual purpose breed, adaptable to different climates',
+                marketDemand: 'High - Good for small farmers',
+                features: ['spotted_coat', 'dual_purpose', 'medium_size'],
+                visualCharacteristics: {
+                    bodyColor: ['white', 'black'],
+                    patterns: ['spotted', 'patches'],
+                    hornShape: 'medium_curved',
+                    bodySize: 'medium',
+                    facialFeatures: 'balanced_head'
+                },
+                referenceImages: [
+                    {
+                        svg: `<svg viewBox="0 0 300 200" class="w-full h-32">
+                            <ellipse cx="150" cy="120" rx="78" ry="40" fill="#ffffff"/>
+                            <ellipse cx="120" cy="82" rx="33" ry="23" fill="#f8f8f8"/>
+                            <circle cx="140" cy="110" r="8" fill="#333"/>
+                            <circle cx="170" cy="125" r="6" fill="#333"/>
+                            <circle cx="130" cy="135" r="5" fill="#333"/>
+                            <path d="M105 70 Q100 60 95 65" stroke="#666" stroke-width="2" fill="none"/>
+                            <path d="M135 70 Q140 60 145 65" stroke="#666" stroke-width="2" fill="none"/>
+                            <circle cx="110" cy="76" r="2" fill="#333"/>
+                            <circle cx="130" cy="76" r="2" fill="#333"/>
+                            <text x="150" y="180" text-anchor="middle" class="text-xs fill-white">Deoni - Maharashtra/Karnataka</text>
+                        </svg>`,
+                        description: 'White coat with black spots, medium build'
+                    }
+                ]
+            },
+            'Khillari': {
+                type: 'cattle',
+                origin: 'Maharashtra/Karnataka',
+                milkYield: '600-1000 kg/lactation',
+                characteristics: 'Grey coat, long horns, excellent draught animal',
+                careTips: 'Hardy breed, minimal care required, good for dry regions',
+                marketDemand: 'Medium - Traditional farming',
+                features: ['grey_coat', 'long_horns', 'draught_animal'],
+                visualCharacteristics: {
+                    bodyColor: ['grey', 'light_grey'],
+                    patterns: ['solid'],
+                    hornShape: 'long_straight',
+                    bodySize: 'medium',
+                    facialFeatures: 'narrow_head'
+                },
+                referenceImages: [
+                    {
+                        svg: `<svg viewBox="0 0 300 200" class="w-full h-32">
+                            <ellipse cx="150" cy="120" rx="75" ry="38" fill="#a0a0a0"/>
+                            <ellipse cx="120" cy="82" rx="30" ry="20" fill="#b0b0b0"/>
+                            <path d="M105 70 L85 45" stroke="#666" stroke-width="3" fill="none"/>
+                            <path d="M135 70 L155 45" stroke="#666" stroke-width="3" fill="none"/>
+                            <circle cx="110" cy="76" r="2" fill="#333"/>
+                            <circle cx="130" cy="76" r="2" fill="#333"/>
+                            <text x="150" y="180" text-anchor="middle" class="text-xs fill-white">Khillari - Maharashtra/Karnataka</text>
+                        </svg>`,
+                        description: 'Grey coat with distinctive long straight horns'
+                    }
+                ]
+            },
+            'Malvi': {
+                type: 'cattle',
+                origin: 'Madhya Pradesh',
+                milkYield: '800-1200 kg/lactation',
+                characteristics: 'Light grey coat, medium size, good draught capacity',
+                careTips: 'Hardy breed, suitable for semi-arid regions',
+                marketDemand: 'Medium - Regional preference',
+                features: ['light_grey', 'medium_size', 'hardy'],
+                visualCharacteristics: {
+                    bodyColor: ['light_grey', 'white'],
+                    patterns: ['solid'],
+                    hornShape: 'medium_straight',
+                    bodySize: 'medium',
+                    facialFeatures: 'compact_head'
+                },
+                referenceImages: [
+                    {
+                        svg: `<svg viewBox="0 0 300 200" class="w-full h-32">
+                            <ellipse cx="150" cy="120" rx="76" ry="39" fill="#e8e8e8"/>
+                            <ellipse cx="120" cy="82" rx="31" ry="21" fill="#f0f0f0"/>
+                            <path d="M105 70 L100 58" stroke="#666" stroke-width="2" fill="none"/>
+                            <path d="M135 70 L140 58" stroke="#666" stroke-width="2" fill="none"/>
+                            <circle cx="110" cy="76" r="2" fill="#333"/>
+                            <circle cx="130" cy="76" r="2" fill="#333"/>
+                            <text x="150" y="180" text-anchor="middle" class="text-xs fill-white">Malvi - Madhya Pradesh</text>
+                        </svg>`,
+                        description: 'Light grey coat, compact build'
+                    }
+                ]
+            },
+            'Nimari': {
+                type: 'cattle',
+                origin: 'Madhya Pradesh',
+                milkYield: '1000-1500 kg/lactation',
+                characteristics: 'Iron grey coat, medium to large size, good milk producer',
+                careTips: 'Adaptable breed, good for mixed farming systems',
+                marketDemand: 'Medium - Dual purpose',
+                features: ['iron_grey', 'dual_purpose', 'adaptable'],
+                visualCharacteristics: {
+                    bodyColor: ['iron_grey', 'dark_grey'],
+                    patterns: ['solid'],
+                    hornShape: 'medium_curved',
+                    bodySize: 'medium_large',
+                    facialFeatures: 'strong_jaw'
+                },
+                referenceImages: [
+                    {
+                        svg: `<svg viewBox="0 0 300 200" class="w-full h-32">
+                            <ellipse cx="150" cy="122" rx="80" ry="42" fill="#696969"/>
+                            <ellipse cx="120" cy="83" rx="34" ry="24" fill="#778899"/>
+                            <path d="M105 70 Q100 58 95 63" stroke="#555" stroke-width="2" fill="none"/>
+                            <path d="M135 70 Q140 58 145 63" stroke="#555" stroke-width="2" fill="none"/>
+                            <circle cx="110" cy="77" r="2" fill="#fff"/>
+                            <circle cx="130" cy="77" r="2" fill="#fff"/>
+                            <text x="150" y="180" text-anchor="middle" class="text-xs fill-white">Nimari - Madhya Pradesh</text>
+                        </svg>`,
+                        description: 'Iron grey coat, strong build'
+                    }
+                ]
+            },
+            'Dangi': {
+                type: 'cattle',
+                origin: 'Maharashtra/Gujarat',
+                milkYield: '600-1000 kg/lactation',
+                characteristics: 'Compact size, various colors, excellent draught animal',
+                careTips: 'Hardy hill breed, minimal maintenance required',
+                marketDemand: 'Low - Specialized regions',
+                features: ['compact_size', 'hill_breed', 'various_colors'],
+                visualCharacteristics: {
+                    bodyColor: ['brown', 'red', 'white'],
+                    patterns: ['mixed'],
+                    hornShape: 'short_curved',
+                    bodySize: 'compact',
+                    facialFeatures: 'small_head'
+                },
+                referenceImages: [
+                    {
+                        svg: `<svg viewBox="0 0 300 200" class="w-full h-32">
+                            <ellipse cx="150" cy="125" rx="70" ry="35" fill="#8B4513"/>
+                            <ellipse cx="120" cy="88" rx="28" ry="18" fill="#A0522D"/>
+                            <path d="M107 75 Q102 68 97 72" stroke="#654321" stroke-width="2" fill="none"/>
+                            <path d="M133 75 Q138 68 143 72" stroke="#654321" stroke-width="2" fill="none"/>
+                            <circle cx="110" cy="80" r="2" fill="#333"/>
+                            <circle cx="130" cy="80" r="2" fill="#333"/>
+                            <text x="150" y="180" text-anchor="middle" class="text-xs fill-white">Dangi - Maharashtra/Gujarat</text>
+                        </svg>`,
+                        description: 'Compact hill breed with brown coloring'
+                    }
+                ]
+            },
+
+            // Buffalo Breeds
+            'Murrah': {
+                type: 'buffalo',
+                origin: 'Haryana/Punjab',
+                milkYield: '2500-4000 kg/lactation',
+                characteristics: 'Black coat, curved horns, high milk fat content',
+                careTips: 'Requires good nutrition, wallowing facility essential',
+                marketDemand: 'Very High - Premium dairy buffalo',
+                features: ['black_coat', 'curved_horns', 'high_fat_milk'],
+                visualCharacteristics: {
+                    bodyColor: ['black', 'dark_grey'],
+                    patterns: ['solid'],
+                    hornShape: 'curved_spiral',
+                    bodySize: 'large',
+                    facialFeatures: 'broad_face'
+                },
+                referenceImages: [
+                    {
+                        svg: `<svg viewBox="0 0 300 200" class="w-full h-32">
+                            <ellipse cx="150" cy="125" rx="90" ry="48" fill="#1a1a1a"/>
+                            <ellipse cx="120" cy="85" rx="40" ry="28" fill="#2d2d2d"/>
+                            <path d="M100 70 Q85 55 80 65 Q85 75 95 75" stroke="#333" stroke-width="3" fill="none"/>
+                            <path d="M140 70 Q155 55 160 65 Q155 75 145 75" stroke="#333" stroke-width="3" fill="none"/>
+                            <circle cx="108" cy="78" r="2" fill="#fff"/>
+                            <circle cx="132" cy="78" r="2" fill="#fff"/>
+                            <text x="150" y="180" text-anchor="middle" class="text-xs fill-white">Murrah Buffalo - Haryana/Punjab</text>
+                        </svg>`,
+                        description: 'Black coat, curved spiral horns, large body'
+                    }
+                ]
+            },
+            'Nili-Ravi': {
+                type: 'buffalo',
+                origin: 'Punjab',
+                milkYield: '2000-3500 kg/lactation',
+                characteristics: 'Black coat with white markings, large size',
+                careTips: 'Heat sensitive, needs shade and water',
+                marketDemand: 'High - Good milk producer',
+                features: ['black_white_markings', 'large_size'],
+                visualCharacteristics: {
+                    bodyColor: ['black', 'white_markings'],
+                    patterns: ['marked'],
+                    hornShape: 'curved_back',
+                    bodySize: 'large',
+                    facialFeatures: 'white_face_markings'
+                },
+                referenceImages: [
+                    {
+                        svg: `<svg viewBox="0 0 300 200" class="w-full h-32">
+                            <ellipse cx="150" cy="125" rx="88" ry="46" fill="#1a1a1a"/>
+                            <ellipse cx="120" cy="85" rx="38" ry="26" fill="#ffffff"/>
+                            <ellipse cx="150" cy="110" rx="20" ry="10" fill="#ffffff"/>
+                            <path d="M102 72 Q88 58 85 68" stroke="#333" stroke-width="3" fill="none"/>
+                            <path d="M138 72 Q152 58 155 68" stroke="#333" stroke-width="3" fill="none"/>
+                            <circle cx="110" cy="78" r="2" fill="#333"/>
+                            <circle cx="130" cy="78" r="2" fill="#333"/>
+                            <text x="150" y="180" text-anchor="middle" class="text-xs fill-white">Nili-Ravi Buffalo - Punjab</text>
+                        </svg>`,
+                        description: 'Black coat with distinctive white markings'
+                    }
+                ]
+            },
+            'Surti': {
+                type: 'buffalo',
+                origin: 'Gujarat',
+                milkYield: '1800-2800 kg/lactation',
+                characteristics: 'Black/brown coat, medium size, good milk quality',
+                careTips: 'Adaptable to coastal climate, regular health care',
+                marketDemand: 'High - Coastal regions',
+                features: ['black_brown', 'medium_size', 'coastal_adapted'],
+                visualCharacteristics: {
+                    bodyColor: ['black', 'dark_brown'],
+                    patterns: ['solid'],
+                    hornShape: 'medium_curved',
+                    bodySize: 'medium',
+                    facialFeatures: 'compact_head'
+                },
+                referenceImages: [
+                    {
+                        svg: `<svg viewBox="0 0 300 200" class="w-full h-32">
+                            <ellipse cx="150" cy="120" rx="75" ry="40" fill="#2d1810"/>
+                            <ellipse cx="120" cy="82" rx="32" ry="22" fill="#3d2820"/>
+                            <path d="M105 70 Q95 60 92 68" stroke="#444" stroke-width="2" fill="none"/>
+                            <path d="M135 70 Q145 60 148 68" stroke="#444" stroke-width="2" fill="none"/>
+                            <circle cx="110" cy="76" r="2" fill="#fff"/>
+                            <circle cx="130" cy="76" r="2" fill="#fff"/>
+                            <text x="150" y="180" text-anchor="middle" class="text-xs fill-white">Surti Buffalo - Gujarat</text>
+                        </svg>`,
+                        description: 'Black/brown coat, medium size, coastal adaptation'
+                    }
+                ]
+            },
+            'Jaffarabadi': {
+                type: 'buffalo',
+                origin: 'Gujarat',
+                milkYield: '2200-3200 kg/lactation',
+                characteristics: 'Large size, black coat, distinctive head shape',
+                careTips: 'Heavy breed, needs strong housing, good feed',
+                marketDemand: 'Medium - Specialized markets',
+                features: ['large_size', 'black_coat', 'distinctive_head'],
+                visualCharacteristics: {
+                    bodyColor: ['black', 'very_dark'],
+                    patterns: ['solid'],
+                    hornShape: 'thick_curved',
+                    bodySize: 'very_large',
+                    facialFeatures: 'distinctive_head_shape'
+                },
+                referenceImages: [
+                    {
+                        svg: `<svg viewBox="0 0 300 200" class="w-full h-32">
+                            <ellipse cx="150" cy="130" rx="95" ry="50" fill="#0d0d0d"/>
+                            <ellipse cx="120" cy="80" rx="42" ry="30" fill="#1a1a1a"/>
+                            <path d="M98 68 Q85 50 82 62" stroke="#333" stroke-width="4" fill="none"/>
+                            <path d="M142 68 Q155 50 158 62" stroke="#333" stroke-width="4" fill="none"/>
+                            <circle cx="108" cy="75" r="2" fill="#fff"/>
+                            <circle cx="132" cy="75" r="2" fill="#fff"/>
+                            <text x="150" y="185" text-anchor="middle" class="text-xs fill-white">Jaffarabadi Buffalo - Gujarat</text>
+                        </svg>`,
+                        description: 'Very large size, distinctive head shape, thick horns'
+                    }
+                ]
+            },
+            'Mehsana': {
+                type: 'buffalo',
+                origin: 'Gujarat',
+                milkYield: '2000-3000 kg/lactation',
+                characteristics: 'Black coat, medium to large size, good fertility',
+                careTips: 'Crossbred variety, good management needed',
+                marketDemand: 'High - Commercial dairy',
+                features: ['black_coat', 'good_fertility', 'crossbred'],
+                visualCharacteristics: {
+                    bodyColor: ['black', 'dark_grey'],
+                    patterns: ['solid'],
+                    hornShape: 'medium_straight',
+                    bodySize: 'medium_large',
+                    facialFeatures: 'balanced_features'
+                },
+                referenceImages: [
+                    {
+                        svg: `<svg viewBox="0 0 300 200" class="w-full h-32">
+                            <ellipse cx="150" cy="125" rx="82" ry="44" fill="#1a1a1a"/>
+                            <ellipse cx="120" cy="83" rx="35" ry="25" fill="#2d2d2d"/>
+                            <path d="M103 70 Q98 58 95 65" stroke="#333" stroke-width="3" fill="none"/>
+                            <path d="M137 70 Q142 58 145 65" stroke="#333" stroke-width="3" fill="none"/>
+                            <circle cx="110" cy="77" r="2" fill="#fff"/>
+                            <circle cx="130" cy="77" r="2" fill="#fff"/>
+                            <text x="150" y="180" text-anchor="middle" class="text-xs fill-white">Mehsana Buffalo - Gujarat</text>
+                        </svg>`,
+                        description: 'Black coat, crossbred characteristics, good fertility'
+                    }
+                ]
+            },
+            'Bhadawari': {
+                type: 'buffalo',
+                origin: 'Uttar Pradesh/Madhya Pradesh',
+                milkYield: '1000-1500 kg/lactation',
+                characteristics: 'Small size, light brown to grey coat, high fat content milk',
+                careTips: 'Hardy breed, suitable for small farmers, low maintenance',
+                marketDemand: 'Medium - Regional markets',
+                features: ['small_size', 'high_fat_milk', 'hardy'],
+                visualCharacteristics: {
+                    bodyColor: ['light_brown', 'grey'],
+                    patterns: ['solid'],
+                    hornShape: 'small_curved',
+                    bodySize: 'small',
+                    facialFeatures: 'compact_head'
+                },
+                referenceImages: [
+                    {
+                        svg: `<svg viewBox="0 0 300 200" class="w-full h-32">
+                            <ellipse cx="150" cy="125" rx="65" ry="35" fill="#8B7355"/>
+                            <ellipse cx="120" cy="88" rx="28" ry="20" fill="#A0522D"/>
+                            <path d="M107 75 Q102 68 99 72" stroke="#654321" stroke-width="2" fill="none"/>
+                            <path d="M133 75 Q138 68 141 72" stroke="#654321" stroke-width="2" fill="none"/>
+                            <circle cx="110" cy="80" r="2" fill="#fff"/>
+                            <circle cx="130" cy="80" r="2" fill="#fff"/>
+                            <text x="150" y="180" text-anchor="middle" class="text-xs fill-white">Bhadawari Buffalo - UP/MP</text>
+                        </svg>`,
+                        description: 'Small size, light brown coat, compact build'
+                    }
+                ]
+            },
+            'Nagpuri': {
+                type: 'buffalo',
+                origin: 'Maharashtra',
+                milkYield: '1200-1800 kg/lactation',
+                characteristics: 'Medium size, black coat, good draught capacity',
+                careTips: 'Dual purpose breed, adaptable to local conditions',
+                marketDemand: 'Medium - Regional preference',
+                features: ['medium_size', 'dual_purpose', 'black_coat'],
+                visualCharacteristics: {
+                    bodyColor: ['black', 'dark_brown'],
+                    patterns: ['solid'],
+                    hornShape: 'medium_curved',
+                    bodySize: 'medium',
+                    facialFeatures: 'strong_features'
+                },
+                referenceImages: [
+                    {
+                        svg: `<svg viewBox="0 0 300 200" class="w-full h-32">
+                            <ellipse cx="150" cy="122" rx="75" ry="40" fill="#1a1a1a"/>
+                            <ellipse cx="120" cy="85" rx="32" ry="22" fill="#2d2d2d"/>
+                            <path d="M105 72 Q95 62 92 68" stroke="#333" stroke-width="3" fill="none"/>
+                            <path d="M135 72 Q145 62 148 68" stroke="#333" stroke-width="3" fill="none"/>
+                            <circle cx="110" cy="78" r="2" fill="#fff"/>
+                            <circle cx="130" cy="78" r="2" fill="#fff"/>
+                            <text x="150" y="180" text-anchor="middle" class="text-xs fill-white">Nagpuri Buffalo - Maharashtra</text>
+                        </svg>`,
+                        description: 'Medium size, black coat, dual-purpose breed'
+                    }
+                ]
+            },
+            'Toda': {
+                type: 'buffalo',
+                origin: 'Tamil Nadu',
+                milkYield: '800-1200 kg/lactation',
+                characteristics: 'Small to medium size, black coat, hill adapted',
+                careTips: 'Hill breed, requires cool climate, traditional management',
+                marketDemand: 'Low - Specialized tribal areas',
+                features: ['hill_adapted', 'small_medium_size', 'traditional'],
+                visualCharacteristics: {
+                    bodyColor: ['black', 'very_dark'],
+                    patterns: ['solid'],
+                    hornShape: 'small_straight',
+                    bodySize: 'small_medium',
+                    facialFeatures: 'narrow_face'
+                },
+                referenceImages: [
+                    {
+                        svg: `<svg viewBox="0 0 300 200" class="w-full h-32">
+                            <ellipse cx="150" cy="120" rx="68" ry="36" fill="#0d0d0d"/>
+                            <ellipse cx="120" cy="85" rx="26" ry="18" fill="#1a1a1a"/>
+                            <path d="M108 72 L105 62" stroke="#333" stroke-width="2" fill="none"/>
+                            <path d="M132 72 L135 62" stroke="#333" stroke-width="2" fill="none"/>
+                            <circle cx="112" cy="78" r="2" fill="#fff"/>
+                            <circle cx="128" cy="78" r="2" fill="#fff"/>
+                            <text x="150" y="180" text-anchor="middle" class="text-xs fill-white">Toda Buffalo - Tamil Nadu</text>
+                        </svg>`,
+                        description: 'Small hill breed, very dark coat'
+                    }
+                ]
+            },
+            'Pandharpuri': {
+                type: 'buffalo',
+                origin: 'Maharashtra',
+                milkYield: '1500-2200 kg/lactation',
+                characteristics: 'Medium to large size, black coat, good milk producer',
+                careTips: 'Good for commercial dairy, requires proper nutrition',
+                marketDemand: 'High - Commercial dairy',
+                features: ['commercial_dairy', 'good_producer', 'medium_large'],
+                visualCharacteristics: {
+                    bodyColor: ['black', 'jet_black'],
+                    patterns: ['solid'],
+                    hornShape: 'medium_back_curved',
+                    bodySize: 'medium_large',
+                    facialFeatures: 'broad_face'
+                },
+                referenceImages: [
+                    {
+                        svg: `<svg viewBox="0 0 300 200" class="w-full h-32">
+                            <ellipse cx="150" cy="125" rx="80" ry="43" fill="#000000"/>
+                            <ellipse cx="120" cy="84" rx="34" ry="24" fill="#1a1a1a"/>
+                            <path d="M102 70 Q88 58 85 66" stroke="#333" stroke-width="3" fill="none"/>
+                            <path d="M138 70 Q152 58 155 66" stroke="#333" stroke-width="3" fill="none"/>
+                            <circle cx="108" cy="77" r="2" fill="#fff"/>
+                            <circle cx="132" cy="77" r="2" fill="#fff"/>
+                            <text x="150" y="180" text-anchor="middle" class="text-xs fill-white">Pandharpuri Buffalo - Maharashtra</text>
+                        </svg>`,
+                        description: 'Jet black coat, commercial dairy breed'
+                    }
+                ]
+            }
+        };
+
+        // Application state
+        let currentImage = null;
+        let analysisResults = null;
+        let selectedBreed = null;
+
+        // DOM elements
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        const browseBtn = document.getElementById('browseBtn');
+        const cameraBtn = document.getElementById('cameraBtn');
+        const imagePreview = document.getElementById('imagePreview');
+        const previewImg = document.getElementById('previewImg');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const analysisResult = document.getElementById('analysisResult');
+        const breedDetails = document.getElementById('breedDetails');
+        const breedsGrid = document.getElementById('breedsGrid');
+        const datasetGrid = document.getElementById('datasetGrid');
+        const searchBreeds = document.getElementById('searchBreeds');
+        const filterType = document.getElementById('filterType');
+        const exportBtn = document.getElementById('exportBtn');
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTabs();
+            initializeUpload();
+            initializeBreedsList();
+            initializeDataset();
+            loadUserData();
+        });
+
+        // Tab functionality
+        function initializeTabs() {
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tabId = btn.dataset.tab;
+                    switchTab(tabId);
+                });
+            });
+        }
+
+        function switchTab(tabId) {
+            // Update active tab button
+            tabBtns.forEach(btn => {
+                btn.classList.remove('active', 'bg-white', 'bg-opacity-20', 'text-white');
+                if (btn.dataset.tab === tabId) {
+                    btn.classList.add('active', 'bg-white', 'bg-opacity-20', 'text-white');
+                }
+            });
+
+            // Show corresponding tab content
+            tabContents.forEach(content => {
+                content.classList.add('hidden');
+            });
+            document.getElementById(`${tabId}-tab`).classList.remove('hidden');
+        }
+
+        // Dataset functionality
+        function initializeDataset() {
+            displayDataset();
+        }
+
+        function displayDataset() {
+            datasetGrid.innerHTML = Object.entries(breedsDatabase).map(([breedName, breedData]) => `
+                <div class="glass rounded-xl p-6">
+                    <div class="flex flex-col lg:flex-row gap-6">
+                        <div class="lg:w-1/3">
+                            <h3 class="text-2xl font-bold mb-2 text-blue-300">${breedName}</h3>
+                            <p class="text-sm opacity-70 mb-4">${breedData.type.charAt(0).toUpperCase() + breedData.type.slice(1)} • ${breedData.origin}</p>
+                            
+                            <div class="reference-gallery">
+                                ${breedData.referenceImages.map(img => `
+                                    <div class="reference-card">
+                                        ${img.svg}
+                                        <p class="text-xs mt-2 opacity-80">${img.description}</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        
+                        <div class="lg:w-2/3">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="bg-black bg-opacity-30 rounded-lg p-4">
+                                    <h4 class="font-bold mb-2 text-green-300">🎨 Visual Characteristics</h4>
+                                    <div class="space-y-2 text-sm">
+                                        <p><strong>Body Colors:</strong> ${breedData.visualCharacteristics.bodyColor.join(', ')}</p>
+                                        <p><strong>Patterns:</strong> ${breedData.visualCharacteristics.patterns.join(', ')}</p>
+                                        <p><strong>Horn Shape:</strong> ${breedData.visualCharacteristics.hornShape.replace('_', ' ')}</p>
+                                        <p><strong>Body Size:</strong> ${breedData.visualCharacteristics.bodySize.replace('_', ' ')}</p>
+                                        <p><strong>Facial Features:</strong> ${breedData.visualCharacteristics.facialFeatures.replace('_', ' ')}</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-black bg-opacity-30 rounded-lg p-4">
+                                    <h4 class="font-bold mb-2 text-yellow-300">📊 Key Features</h4>
+                                    <div class="flex flex-wrap gap-1 mb-3">
+                                        ${breedData.features.map(feature => 
+                                            `<span class="bg-purple-600 text-xs px-2 py-1 rounded">${feature.replace('_', ' ')}</span>`
+                                        ).join('')}
+                                    </div>
+                                    <p class="text-sm"><strong>Milk Yield:</strong> ${breedData.milkYield}</p>
+                                    <p class="text-sm"><strong>Market Demand:</strong> ${breedData.marketDemand}</p>
+                                </div>
+                                
+                                <div class="bg-black bg-opacity-30 rounded-lg p-4 md:col-span-2">
+                                    <h4 class="font-bold mb-2 text-blue-300">📋 Characteristics</h4>
+                                    <p class="text-sm leading-relaxed">${breedData.characteristics}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4 text-center">
+                                <button onclick="showBreedDetails('${breedName}')" 
+                                        class="btn-primary px-6 py-3 rounded-lg font-medium transition-all duration-300">
+                                    📋 View Full Details
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Upload functionality
+        function initializeUpload() {
+            // File input change
+            fileInput.addEventListener('change', handleFileSelect);
+            
+            // Browse button
+            browseBtn.addEventListener('click', () => fileInput.click());
+            
+            // Camera button
+            cameraBtn.addEventListener('click', handleCameraCapture);
+            
+            // Drag and drop
+            uploadZone.addEventListener('dragover', handleDragOver);
+            uploadZone.addEventListener('dragleave', handleDragLeave);
+            uploadZone.addEventListener('drop', handleDrop);
+            uploadZone.addEventListener('click', () => fileInput.click());
+            
+            // Analyze button
+            analyzeBtn.addEventListener('click', analyzeImage);
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                displayImage(file);
+            }
+        }
+
+        function handleCameraCapture() {
+            // Create camera input
+            const cameraInput = document.createElement('input');
+            cameraInput.type = 'file';
+            cameraInput.accept = 'image/*';
+            cameraInput.capture = 'camera';
+            cameraInput.addEventListener('change', handleFileSelect);
+            cameraInput.click();
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            uploadZone.classList.add('dragover');
+        }
+
+        function handleDragLeave(event) {
+            event.preventDefault();
+            uploadZone.classList.remove('dragover');
+        }
+
+        function handleDrop(event) {
+            event.preventDefault();
+            uploadZone.classList.remove('dragover');
+            
+            const files = event.dataTransfer.files;
+            if (files.length > 0 && files[0].type.startsWith('image/')) {
+                displayImage(files[0]);
+            }
+        }
+
+        function displayImage(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                currentImage = e.target.result;
+                previewImg.src = currentImage;
+                imagePreview.classList.remove('hidden');
+                uploadZone.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Advanced image analysis with visual feature detection
+        function analyzeImage() {
+            if (!currentImage) return;
+
+            analyzeBtn.disabled = true;
+            analyzeBtn.innerHTML = '🔄 Analyzing Visual Features...';
+
+            // Create canvas for image analysis
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            
+            img.onload = function() {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                
+                // Perform detailed visual analysis
+                setTimeout(() => {
+                    const results = performAdvancedBreedAnalysis(canvas, ctx);
+                    displayAnalysisResults(results);
+                    switchTab('result');
+                    
+                    analyzeBtn.disabled = false;
+                    analyzeBtn.innerHTML = '🔍 Analyze Breed';
+                }, 3000);
+            };
+            
+            img.src = currentImage;
+        }
+
+        function performAdvancedBreedAnalysis(canvas, ctx) {
+            // Extract visual features from the image
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const features = extractVisualFeatures(imageData);
+            
+            // Match features against breed database with visual characteristics
+            const breedMatches = matchFeaturesWithBreeds(features);
+            
+            // Determine primary breed and confidence
+            const primaryMatch = breedMatches[0];
+            const alternatives = breedMatches.slice(1, 4);
+            
+            analysisResults = {
+                primaryBreed: primaryMatch.breed,
+                confidence: primaryMatch.confidenceLevel,
+                confidenceScore: primaryMatch.score,
+                alternatives: alternatives.map(m => ({
+                    breed: m.breed,
+                    score: m.score,
+                    matchedFeatures: m.matchedFeatures
+                })),
+                detectedFeatures: features,
+                analysisDetails: primaryMatch.analysisDetails,
+                visualComparison: generateVisualComparison(features, primaryMatch.breed),
+                timestamp: new Date().toISOString()
+            };
+
+            saveUserData();
+            return analysisResults;
+        }
+
+        function extractVisualFeatures(imageData) {
+            const data = imageData.data;
+            const width = imageData.width;
+            const height = imageData.height;
+            
+            // Analyze color distribution
+            const colorAnalysis = analyzeColorDistribution(data);
+            
+            // Detect patterns and markings
+            const patternAnalysis = detectPatterns(data, width, height);
+            
+            // Analyze body structure indicators
+            const structureAnalysis = analyzeBodyStructure(data, width, height);
+            
+            return {
+                dominantColors: colorAnalysis.dominantColors,
+                colorPercentages: colorAnalysis.percentages,
+                patterns: patternAnalysis.patterns,
+                markings: patternAnalysis.markings,
+                bodyStructure: structureAnalysis,
+                imageQuality: assessImageQuality(data)
+            };
+        }
+
+        function analyzeColorDistribution(data) {
+            const colorCounts = {};
+            const totalPixels = data.length / 4;
+            
+            // Sample every 10th pixel for performance
+            for (let i = 0; i < data.length; i += 40) {
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+                
+                // Classify color into breed-relevant categories
+                const colorCategory = classifyColor(r, g, b);
+                colorCounts[colorCategory] = (colorCounts[colorCategory] || 0) + 1;
+            }
+            
+            // Calculate percentages and identify dominant colors
+            const percentages = {};
+            const dominantColors = [];
+            
+            for (const [color, count] of Object.entries(colorCounts)) {
+                const percentage = (count / (totalPixels / 10)) * 100;
+                percentages[color] = Math.round(percentage);
+                
+                if (percentage > 15) {
+                    dominantColors.push(color);
+                }
+            }
+            
+            return { dominantColors, percentages };
+        }
+
+        function classifyColor(r, g, b) {
+            // Convert RGB to HSV for better color classification
+            const max = Math.max(r, g, b);
+            const min = Math.min(r, g, b);
+            const diff = max - min;
+            
+            // Brightness
+            const brightness = (max + min) / 2;
+            
+            // Saturation
+            const saturation = max === 0 ? 0 : diff / max;
+            
+            // Hue calculation
+            let hue = 0;
+            if (diff !== 0) {
+                if (max === r) hue = ((g - b) / diff) % 6;
+                else if (max === g) hue = (b - r) / diff + 2;
+                else hue = (r - g) / diff + 4;
+            }
+            hue = Math.round(hue * 60);
+            if (hue < 0) hue += 360;
+            
+            // Classify into breed-relevant colors
+            if (brightness < 50) return 'black';
+            if (brightness > 200 && saturation < 0.3) return 'white';
+            if (brightness > 150 && saturation < 0.5) return 'light_grey';
+            if (brightness < 100 && saturation < 0.5) return 'dark_grey';
+            
+            if (hue >= 0 && hue < 30) return r > 150 ? 'red' : 'dark_red';
+            if (hue >= 30 && hue < 60) return 'brown';
+            if (hue >= 60 && hue < 120) return 'yellow';
+            if (hue >= 300 && hue < 360) return 'reddish_brown';
+            
+            return 'mixed';
+        }
+
+        function detectPatterns(data, width, height) {
+            // Simplified pattern detection
+            const patterns = [];
+            const markings = [];
+            
+            // Check for spotted patterns (high contrast variations)
+            let contrastChanges = 0;
+            for (let i = 0; i < data.length - 4; i += 40) {
+                const brightness1 = (data[i] + data[i + 1] + data[i + 2]) / 3;
+                const brightness2 = (data[i + 4] + data[i + 5] + data[i + 6]) / 3;
+                
+                if (Math.abs(brightness1 - brightness2) > 50) {
+                    contrastChanges++;
+                }
+            }
+            
+            const contrastRatio = contrastChanges / (data.length / 40);
+            
+            if (contrastRatio > 0.3) patterns.push('spotted');
+            if (contrastRatio > 0.5) patterns.push('highly_spotted');
+            if (contrastRatio < 0.1) patterns.push('solid');
+            
+            return { patterns, markings };
+        }
+
+        function analyzeBodyStructure(data, width, height) {
+            // Basic structure analysis based on image composition
+            const aspectRatio = width / height;
+            
+            return {
+                aspectRatio: aspectRatio,
+                size: aspectRatio > 1.5 ? 'large' : aspectRatio > 1.2 ? 'medium' : 'compact',
+                orientation: width > height ? 'horizontal' : 'vertical'
+            };
+        }
+
+        function assessImageQuality(data) {
+            // Simple quality assessment
+            let totalBrightness = 0;
+            for (let i = 0; i < data.length; i += 4) {
+                totalBrightness += (data[i] + data[i + 1] + data[i + 2]) / 3;
+            }
+            
+            const avgBrightness = totalBrightness / (data.length / 4);
+            
+            if (avgBrightness < 50 || avgBrightness > 200) return 'poor';
+            return 'good';
+        }
+
+        function matchFeaturesWithBreeds(features) {
+            const matches = [];
+            
+            for (const [breedName, breedData] of Object.entries(breedsDatabase)) {
+                const score = calculateBreedMatchScore(features, breedData, breedName);
+                const matchedFeatures = identifyMatchedFeatures(features, breedData);
+                
+                matches.push({
+                    breed: breedName,
+                    score: score,
+                    confidenceLevel: score > 85 ? 'High' : score > 70 ? 'Medium' : 'Low',
+                    matchedFeatures: matchedFeatures,
+                    analysisDetails: generateAnalysisDetails(features, breedData, score)
+                });
+            }
+            
+            // Sort by score (highest first)
+            return matches.sort((a, b) => b.score - a.score);
+        }
+
+        function calculateBreedMatchScore(features, breedData, breedName) {
+            let score = 0;
+            let maxScore = 0;
+            
+            // Enhanced color matching using visual characteristics (50% weight)
+            const colorScore = matchColorsWithVisualCharacteristics(features.dominantColors, breedData.visualCharacteristics);
+            score += colorScore * 0.5;
+            maxScore += 50;
+            
+            // Pattern matching (25% weight)
+            const patternScore = matchPatternsWithVisualCharacteristics(features.patterns, breedData.visualCharacteristics);
+            score += patternScore * 0.25;
+            maxScore += 25;
+            
+            // Structure matching (15% weight)
+            const structureScore = matchStructureWithVisualCharacteristics(features.bodyStructure, breedData.visualCharacteristics);
+            score += structureScore * 0.15;
+            maxScore += 15;
+            
+            // Image quality bonus (10% weight)
+            const qualityBonus = features.imageQuality === 'good' ? 10 : 5;
+            score += qualityBonus * 0.1;
+            maxScore += 10;
+            
+            return Math.round((score / maxScore) * 100);
+        }
+
+        function matchColorsWithVisualCharacteristics(detectedColors, visualChars) {
+            let colorScore = 0;
+            const expectedColors = visualChars.bodyColor;
+            
+            for (const expectedColor of expectedColors) {
+                if (detectedColors.includes(expectedColor)) {
+                    colorScore += 100 / expectedColors.length;
+                }
+                // Check for similar colors
+                const similarColors = getSimilarColors(expectedColor);
+                for (const similarColor of similarColors) {
+                    if (detectedColors.includes(similarColor)) {
+                        colorScore += 50 / expectedColors.length;
+                        break;
+                    }
+                }
+            }
+            
+            return Math.min(colorScore, 100);
+        }
+
+        function getSimilarColors(color) {
+            const colorMap = {
+                'white': ['light_grey', 'cream'],
+                'black': ['dark_grey', 'very_dark'],
+                'red': ['dark_red', 'reddish_brown'],
+                'brown': ['dark_brown', 'reddish_brown'],
+                'light_grey': ['white', 'silver_grey'],
+                'dark_grey': ['black', 'grey']
+            };
+            return colorMap[color] || [];
+        }
+
+        function matchPatternsWithVisualCharacteristics(detectedPatterns, visualChars) {
+            const expectedPatterns = visualChars.patterns;
+            let patternScore = 50; // Base score
+            
+            for (const expectedPattern of expectedPatterns) {
+                if (detectedPatterns.includes(expectedPattern)) {
+                    patternScore += 50;
+                }
+            }
+            
+            return Math.min(patternScore, 100);
+        }
+
+        function matchStructureWithVisualCharacteristics(detectedStructure, visualChars) {
+            let structureScore = 50; // Base score
+            
+            // Size matching
+            const sizeMap = {
+                'very_large': ['large'],
+                'large': ['very_large', 'medium_large'],
+                'medium_large': ['large', 'medium'],
+                'medium': ['medium_large', 'compact'],
+                'compact': ['medium']
+            };
+            
+            const expectedSize = visualChars.bodySize;
+            if (detectedStructure.size === expectedSize) {
+                structureScore += 50;
+            } else if (sizeMap[expectedSize]?.includes(detectedStructure.size)) {
+                structureScore += 25;
+            }
+            
+            return Math.min(structureScore, 100);
+        }
+
+        function identifyMatchedFeatures(features, breedData) {
+            const matched = [];
+            
+            // Check color matches
+            const visualChars = breedData.visualCharacteristics;
+            for (const expectedColor of visualChars.bodyColor) {
+                if (features.dominantColors.includes(expectedColor)) {
+                    matched.push(`${expectedColor.replace('_', ' ')} coloring detected`);
+                }
+            }
+            
+            // Check pattern matches
+            for (const expectedPattern of visualChars.patterns) {
+                if (features.patterns.includes(expectedPattern)) {
+                    matched.push(`${expectedPattern} pattern detected`);
+                }
+            }
+            
+            // Check structure
+            matched.push(`Body structure: ${features.bodyStructure.size} size`);
+            
+            return matched;
+        }
+
+        function generateAnalysisDetails(features, breedData, score) {
+            return {
+                colorAnalysis: `Detected colors: ${features.dominantColors.join(', ')}`,
+                patternAnalysis: `Detected patterns: ${features.patterns.join(', ') || 'None specific'}`,
+                structureAnalysis: `Body structure: ${features.bodyStructure.size} size, ${features.bodyStructure.orientation} orientation`,
+                matchingAccuracy: `${score}% match based on visual characteristics`,
+                origin: breedData.origin,
+                breedType: breedData.type
+            };
+        }
+
+        function generateVisualComparison(features, breedName) {
+            const breedData = breedsDatabase[breedName];
+            const visualChars = breedData.visualCharacteristics;
+            
+            return {
+                colorMatch: features.dominantColors.filter(color => 
+                    visualChars.bodyColor.includes(color)
+                ),
+                patternMatch: features.patterns.filter(pattern => 
+                    visualChars.patterns.includes(pattern)
+                ),
+                expectedColors: visualChars.bodyColor,
+                expectedPatterns: visualChars.patterns,
+                referenceImage: breedData.referenceImages[0]
+            };
+        }
+
+        function displayAnalysisResults(results) {
+            const confidenceClass = `confidence-${results.confidence.toLowerCase()}`;
+            
+            analysisResult.innerHTML = `
+                <div class="fade-in">
+                    <div class="mb-6">
+                        <img src="${currentImage}" class="w-32 h-32 mx-auto rounded-lg shadow-lg mb-4 object-cover">
+                    </div>
+                    
+                    <div class="glass rounded-xl p-6 mb-6">
+                        <h3 class="text-2xl font-bold mb-4">🎯 Primary Match</h3>
+                        <div class="text-center">
+                            <h4 class="text-3xl font-bold text-blue-300 mb-2">${results.primaryBreed}</h4>
+                            <p class="text-lg mb-2">
+                                Confidence: <span class="${confidenceClass} font-bold">${results.confidence} (${results.confidenceScore}%)</span>
+                            </p>
+                            <p class="opacity-70 mb-2">Type: ${breedsDatabase[results.primaryBreed].type.charAt(0).toUpperCase() + breedsDatabase[results.primaryBreed].type.slice(1)}</p>
+                            <p class="opacity-70 mb-4">Origin: ${results.analysisDetails.origin}</p>
+                            <button onclick="showBreedDetails('${results.primaryBreed}')" 
+                                    class="btn-primary px-6 py-3 rounded-lg font-medium transition-all duration-300">
+                                📋 View Details
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="glass rounded-xl p-6 mb-6">
+                        <h3 class="text-xl font-bold mb-4">🔍 Visual Comparison</h3>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div>
+                                <h4 class="font-bold mb-3 text-green-300">📊 Detected Features</h4>
+                                <div class="bg-black bg-opacity-30 rounded-lg p-4 space-y-2">
+                                    <p class="text-sm"><strong>Colors:</strong> ${results.detectedFeatures.dominantColors.join(', ')}</p>
+                                    <p class="text-sm"><strong>Patterns:</strong> ${results.detectedFeatures.patterns.join(', ') || 'Solid'}</p>
+                                    <p class="text-sm"><strong>Body Size:</strong> ${results.detectedFeatures.bodyStructure.size}</p>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="font-bold mb-3 text-blue-300">🎯 Expected for ${results.primaryBreed}</h4>
+                                <div class="bg-black bg-opacity-30 rounded-lg p-4">
+                                    ${results.visualComparison.referenceImage.svg}
+                                    <p class="text-xs mt-2 opacity-80">${results.visualComparison.referenceImage.description}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 bg-black bg-opacity-30 rounded-lg p-4">
+                            <h4 class="font-bold mb-2 text-purple-300">✅ Matched Features</h4>
+                            <div class="flex flex-wrap gap-2">
+                                ${results.alternatives[0]?.matchedFeatures?.map(feature => 
+                                    `<span class="bg-green-600 text-xs px-2 py-1 rounded">${feature}</span>`
+                                ).join('') || '<span class="text-sm opacity-70">Processing matched features...</span>'}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    ${results.alternatives.length > 0 ? `
+                        <div class="glass rounded-xl p-6 mb-6">
+                            <h3 class="text-xl font-bold mb-4">🔄 Alternative Matches</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                ${results.alternatives.map(alt => `
+                                    <div class="bg-black bg-opacity-30 rounded-lg p-4 text-center">
+                                        <h4 class="font-bold text-lg mb-2">${alt.breed}</h4>
+                                        <p class="text-sm opacity-70 mb-2">${breedsDatabase[alt.breed].type.charAt(0).toUpperCase() + breedsDatabase[alt.breed].type.slice(1)}</p>
+                                        <p class="text-sm mb-3">Match: ${alt.score}%</p>
+                                        <button onclick="showBreedDetails('${alt.breed}')" 
+                                                class="btn-purple px-4 py-2 rounded font-medium transition-all duration-300 text-sm">
+                                            View Details
+                                        </button>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="text-center">
+                        <button onclick="resetUpload(); switchTab('upload')" 
+                                class="btn-amber px-8 py-4 rounded-lg font-medium transition-all duration-300 text-lg">
+                            📤 Analyze Another Image
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Breed details functionality
+        function showBreedDetails(breedName) {
+            selectedBreed = breedName;
+            const breed = breedsDatabase[breedName];
+            
+            breedDetails.innerHTML = `
+                <div class="fade-in max-w-4xl mx-auto">
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-bold mb-2">${breedName}</h2>
+                        <p class="text-xl opacity-80">${breed.type.charAt(0).toUpperCase() + breed.type.slice(1)} Breed</p>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <div class="glass rounded-xl p-6">
+                            <h3 class="text-xl font-bold mb-4 text-blue-300">🖼️ Visual Reference</h3>
+                            <div class="reference-gallery">
+                                ${breed.referenceImages.map(img => `
+                                    <div class="reference-card">
+                                        ${img.svg}
+                                        <p class="text-sm mt-2 opacity-80">${img.description}</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="glass rounded-xl p-6">
+                            <h3 class="text-xl font-bold mb-4 text-blue-300">📍 Origin & Basic Info</h3>
+                            <div class="space-y-3">
+                                <p><strong>Origin:</strong> ${breed.origin}</p>
+                                <p><strong>Type:</strong> ${breed.type.charAt(0).toUpperCase() + breed.type.slice(1)}</p>
+                                <p><strong>Milk Yield:</strong> ${breed.milkYield}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="glass rounded-xl p-6">
+                            <h3 class="text-xl font-bold mb-4 text-green-300">🎯 Characteristics</h3>
+                            <p class="leading-relaxed">${breed.characteristics}</p>
+                        </div>
+                        
+                        <div class="glass rounded-xl p-6">
+                            <h3 class="text-xl font-bold mb-4 text-yellow-300">🔧 Care Tips</h3>
+                            <p class="leading-relaxed">${breed.careTips}</p>
+                        </div>
+                        
+                        <div class="glass rounded-xl p-6">
+                            <h3 class="text-xl font-bold mb-4 text-purple-300">📈 Market Demand</h3>
+                            <p class="leading-relaxed">${breed.marketDemand}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-8">
+                        <button onclick="resetUpload(); switchTab('upload')" 
+                                class="btn-amber px-6 py-3 rounded-lg font-medium transition-all duration-300 mr-4">
+                            📤 Analyze Another Image
+                        </button>
+                        <button onclick="switchTab('result')" 
+                                class="btn-primary px-6 py-3 rounded-lg font-medium transition-all duration-300 mr-4">
+                            ← Back to Results
+                        </button>
+                        <button onclick="switchTab('dataset')" 
+                                class="btn-success px-6 py-3 rounded-lg font-medium transition-all duration-300 mr-4">
+                            📊 View Dataset
+                        </button>
+                        <button onclick="switchTab('breeds')" 
+                                class="btn-purple px-6 py-3 rounded-lg font-medium transition-all duration-300">
+                            🐮 Browse All Breeds
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            switchTab('details');
+        }
+
+        // Breeds list functionality
+        function initializeBreedsList() {
+            displayBreedsList();
+            
+            searchBreeds.addEventListener('input', filterBreeds);
+            filterType.addEventListener('change', filterBreeds);
+            exportBtn.addEventListener('click', exportBreedsData);
+        }
+
+        function displayBreedsList(filteredBreeds = null) {
+            const breeds = filteredBreeds || Object.keys(breedsDatabase);
+            
+            breedsGrid.innerHTML = breeds.map(breedName => {
+                const breed = breedsDatabase[breedName];
+                const cardClass = breed.type === 'cattle' ? 'card-cattle' : 'card-buffalo';
+                const demandColor = breed.marketDemand.includes('Very High') ? 'bg-green-500' : 
+                                  breed.marketDemand.includes('High') ? 'bg-blue-500' : 'bg-amber-500';
+                return `
+                    <div class="breed-card ${cardClass} rounded-xl p-6 cursor-pointer hover:scale-105 transition-all duration-300" onclick="showBreedDetails('${breedName}')">
+                        <div class="text-center">
+                            <div class="mb-4 bg-white bg-opacity-10 rounded-lg p-3">
+                                ${breed.referenceImages[0].svg}
+                            </div>
+                            <h3 class="text-xl font-bold mb-2 text-white">${breedName}</h3>
+                            <p class="text-sm text-blue-200 mb-3">${breed.type.charAt(0).toUpperCase() + breed.type.slice(1)} • ${breed.origin}</p>
+                            <p class="text-sm text-green-300 mb-4 font-medium">🥛 ${breed.milkYield}</p>
+                            <div class="glass-dark rounded-lg p-3 mb-4">
+                                <p class="text-xs leading-relaxed text-gray-200">${breed.characteristics.substring(0, 100)}...</p>
+                            </div>
+                            <span class="inline-block ${demandColor} text-xs px-3 py-1 rounded-full text-white font-medium">
+                                ${breed.marketDemand.split(' - ')[0]}
+                            </span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterBreeds() {
+            const searchTerm = searchBreeds.value.toLowerCase();
+            const typeFilter = filterType.value;
+            
+            const filtered = Object.keys(breedsDatabase).filter(breedName => {
+                const breed = breedsDatabase[breedName];
+                const matchesSearch = breedName.toLowerCase().includes(searchTerm) || 
+                                    breed.origin.toLowerCase().includes(searchTerm) ||
+                                    breed.characteristics.toLowerCase().includes(searchTerm);
+                const matchesType = !typeFilter || breed.type === typeFilter;
+                
+                return matchesSearch && matchesType;
+            });
+            
+            displayBreedsList(filtered);
+        }
+
+        function exportBreedsData() {
+            const dataStr = JSON.stringify(breedsDatabase, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'indian_cattle_buffalo_breeds_dataset.json';
+            link.click();
+            
+            URL.revokeObjectURL(url);
+        }
+
+        // Local storage functionality
+        function saveUserData() {
+            const userData = {
+                analysisHistory: analysisResults ? [analysisResults] : [],
+                lastUpdated: new Date().toISOString()
+            };
+            localStorage.setItem('cattleBreedApp', JSON.stringify(userData));
+        }
+
+        function loadUserData() {
+            const userData = localStorage.getItem('cattleBreedApp');
+            if (userData) {
+                const parsed = JSON.parse(userData);
+                // Could restore previous analysis if needed
+            }
+        }
+
+        // Reset upload area
+        function resetUpload() {
+            currentImage = null;
+            imagePreview.classList.add('hidden');
+            uploadZone.style.display = 'block';
+            fileInput.value = '';
+        }
+
+        // Add reset button functionality
+        document.addEventListener('click', function(e) {
+            if (e.target.id === 'resetBtn') {
+                resetUpload();
+                switchTab('upload');
+            }
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9851c05b61376e60',t:'MTc1ODg3OTExOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
